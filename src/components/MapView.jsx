@@ -6,53 +6,26 @@ const MapView = ({ selectedSpot, spots = [] }) => {
     const markersRef = useRef([])
     const infoRef = useRef(null)
     
-    // 지도가 준비되었는지 확인하는 스위치
     const [mapReady, setMapReady] = useState(false)
 
-    // 1. 카카오 스크립트 안전하게 불러오기
+    // 💡 1. 카카오 스크립트 다운로드 코드 삭제! (index.html에서 이미 가져왔기 때문)
     useEffect(() => {
-        console.log("🔍 1. MapView 화면 등장! 카카오 스크립트 불러오기 시작");
-        
-        // 이미 스크립트가 있다면 바로 준비 완료!
+        // window.kakao가 있으면 바로 지도를 그릴 준비(load)만 딱 시켜줌!
         if (window.kakao && window.kakao.maps) {
-            console.log("✅ 2. 카카오맵 이미 불러와져 있음!");
-            setMapReady(true);
-            return;
-        }
-
-        // 스크립트 직접 만들어서 HTML에 쏙 넣기 (새로운 자바스크립트 키 적용!)
-        const script = document.createElement('script');
-        script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=2574230cc666ba203e4d46b62d22d7ca&autoload=false';
-        script.async = true;
-        document.head.appendChild(script);
-
-        script.onload = () => {
-            console.log("✅ 3. 카카오 스크립트 다운로드 완료!");
             window.kakao.maps.load(() => {
-                console.log("✅ 4. 지도 그릴 준비 100% 완료 (load 실행됨)!");
+                console.log("✅ 카카오맵 준비 완료!");
                 setMapReady(true);
             });
-        };
-        
-        script.onerror = () => {
-            console.error("❌ 카카오 스크립트를 다운로드하는 데 실패했습니다. 주소(포트)나 앱키를 확인하세요.");
+        } else {
+            console.error("❌ 카카오맵 스크립트를 찾을 수 없습니다. index.html을 확인하세요.");
         }
     }, []);
 
-    // 2. 지도와 마커 그리기
+    // 2. 지도와 마커 그리기 (이 아래는 네가 짠 완벽한 코드 그대로야!)
     useEffect(() => {
-        if (!mapReady) {
-            console.log("⏳ 5. 아직 준비 안 됨... 기다리는 중");
-            return;
-        }
-        if (!mapRef.current) {
-            console.log("❌ 화면에 지도를 그릴 공간(div)이 없음!");
-            return;
-        }
-
-        console.log("🗺️ 6. 드디어 지도 그리기 시작!");
+        if (!mapReady) return;
+        if (!mapRef.current) return;
         
-        // 지도 처음 한 번만 생성
         let map = mapInstanceRef.current;
         if (!map) {
             const center = new window.kakao.maps.LatLng(37.5665, 126.978);
@@ -66,19 +39,13 @@ const MapView = ({ selectedSpot, spots = [] }) => {
                 zIndex: 10,
                 removable: true,
             });
-            console.log("🗺️ 지도 생성 완료!");
         }
 
-        // --- 여기서부터 마커 생성 ---
         markersRef.current.forEach((m) => m.setMap(null));
         markersRef.current = [];
         
-        if (!spots || spots.length === 0) {
-            console.log("📌 표시할 와이파이 목록이 없습니다.");
-            return;
-        }
+        if (!spots || spots.length === 0) return;
 
-        console.log(`📌 ${spots.length}개의 마커 그리기 시작!`);
         spots.forEach((spot) => {
             if (!spot.lat || !spot.lng) return;
             
@@ -107,7 +74,6 @@ const MapView = ({ selectedSpot, spots = [] }) => {
     useEffect(() => {
         if (!mapReady || !selectedSpot || !mapInstanceRef.current) return;
         
-        console.log(`🎯 선택된 장소로 이동: ${selectedSpot.name}`);
         const map = mapInstanceRef.current;
         const { lat, lng } = selectedSpot;
         const position = new window.kakao.maps.LatLng(Number(lat), Number(lng));
